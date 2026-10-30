@@ -116,15 +116,34 @@ async function initBackendStatus() {
 
   statusPill.onclick = async () => {
     showToast('Comprobando conexión con backend...', 'info');
-    const reCheck = await QgoAPI.checkHealth();
+    let reCheck = await QgoAPI.checkHealth();
     if (reCheck.connected) {
       statusPill.className = 'backend-status-pill connected';
       statusPill.innerHTML = '🟢 Spring Boot Conectado';
-      showToast('¡Backend Spring Boot conectado!', 'success');
-    } else {
-      statusPill.className = 'backend-status-pill offline';
-      statusPill.innerHTML = '🟡 Modo Demo (Spring Boot Offline)';
-      showToast('Backend no detectado en localhost:8080 (Modo autónomo activo)', 'info');
+      showToast(`¡Backend Spring Boot conectado! (${QgoAPI.getBackendUrl()})`, 'success');
+      return;
+    }
+
+    const currentUrl = (typeof QgoAPI.getBackendUrl === 'function') ? QgoAPI.getBackendUrl() : 'http://localhost:8080';
+    const isHttpsDomain = window.location.protocol === 'https:' && !window.location.hostname.includes('localhost');
+    const msg = isHttpsDomain
+      ? `🔌 Conectar Backend Spring Boot en GitHub Pages:\n\nEn internet público (HTTPS), los navegadores no permiten conectar directamente a http://localhost:8080.\n\nIngresa la URL HTTPS de tu backend (de Render, Railway o túnel ngrok/localtunnel) o deja vacío para usar el Modo Demo autónomo:`
+      : `🔌 Configurar URL de Backend Spring Boot:\n\nURL actual: ${currentUrl}\n\nIngresa la URL del backend o deja vacío para usar http://localhost:8080:`;
+
+    const userUrl = prompt(msg, currentUrl.includes('localhost') ? '' : currentUrl);
+    if (userUrl !== null) {
+      if (typeof QgoAPI.setBackendUrl === 'function') QgoAPI.setBackendUrl(userUrl);
+      showToast('Verificando conexión con el backend...', 'info');
+      reCheck = await QgoAPI.checkHealth();
+      if (reCheck.connected) {
+        statusPill.className = 'backend-status-pill connected';
+        statusPill.innerHTML = '🟢 Spring Boot Conectado';
+        showToast('¡Backend Spring Boot conectado exitosamente!', 'success');
+      } else {
+        statusPill.className = 'backend-status-pill offline';
+        statusPill.innerHTML = '🟡 Modo Demo (Spring Boot Offline)';
+        showToast('No se detectó backend en esa dirección. Modo autónomo activo.', 'info');
+      }
     }
   };
 }

@@ -2,21 +2,37 @@
 // QGO API CLIENT - INTEGRACIÓN CON SPRING BOOT
 // ========================================================
 
-const API_BASE_URL = (() => {
-  if (window.location.origin.includes(':8080')) return '';
+function getApiBaseUrl() {
+  const custom = localStorage.getItem('qgo_backend_url');
+  if (custom && custom.trim()) {
+    return custom.trim().replace(/\/+$/, '');
+  }
+  if (window.location.origin && window.location.origin.includes(':8080')) return '';
   if (!window.location.hostname || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
     return 'http://localhost:8080';
   }
   return window.QGO_CLOUD_API_URL || 'https://qgo-backend-production.up.railway.app';
-})();
+}
 
 const QgoAPI = {
   isBackendConnected: false,
 
+  getBackendUrl() {
+    return getApiBaseUrl();
+  },
+
+  setBackendUrl(url) {
+    if (!url || !url.trim()) {
+      localStorage.removeItem('qgo_backend_url');
+    } else {
+      localStorage.setItem('qgo_backend_url', url.trim().replace(/\/+$/, ''));
+    }
+  },
+
   // Verificar estado del backend de Spring Boot
   async checkHealth() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/prueba`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/prueba`, {
         method: 'GET',
         headers: { 'Accept': 'application/json, text/plain' },
         signal: AbortSignal.timeout(3000)
@@ -57,7 +73,7 @@ const QgoAPI = {
 
     if (this.isBackendConnected) {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/usuarios`);
+        const res = await fetch(`${getApiBaseUrl()}/api/usuarios`);
         if (res.ok) {
           const remoteUsers = await res.json();
           if (Array.isArray(remoteUsers) && remoteUsers.length > 0) {
@@ -102,7 +118,7 @@ const QgoAPI = {
 
     if (this.isBackendConnected) {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/usuarios`, {
+        const res = await fetch(`${getApiBaseUrl()}/api/usuarios`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(nuevoUsuario)
@@ -135,7 +151,7 @@ const QgoAPI = {
   async actualizarUsuario(usuarioActualizado) {
     if (this.isBackendConnected && usuarioActualizado.id) {
       try {
-        await fetch(`${API_BASE_URL}/api/usuarios/${usuarioActualizado.id}`, {
+        await fetch(`${getApiBaseUrl()}/api/usuarios/${usuarioActualizado.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(usuarioActualizado)
@@ -159,7 +175,7 @@ const QgoAPI = {
   async eliminarUsuario(userId) {
     if (this.isBackendConnected) {
       try {
-        await fetch(`${API_BASE_URL}/api/usuarios/${userId}`, {
+        await fetch(`${getApiBaseUrl()}/api/usuarios/${userId}`, {
           method: 'DELETE'
         });
       } catch (e) {
