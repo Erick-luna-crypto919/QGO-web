@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qgo Guatemala - Delivery de Comida</title>
+  <meta name="description"
+    content="Pide comida a domicilio en Guatemala en Qgo: Pollo Campero, McDonald's, Pizza Hut, Burger King, Subway y Domino's con rastreo en vivo y pago en Quetzales.">
+
+  <!-- Favicon / Icono en la URL y pestañas del navegador -->
+  <link rel="icon" type="image/jpeg" href="css/WEB/logo web.jpeg">
+  <link rel="shortcut icon" type="image/jpeg" href="css/WEB/logo web.jpeg">
+  <link rel="apple-touch-icon" href="css/WEB/logo web.jpeg">
+
+  <!-- Estilos base y Leaflet Map para calles reales de Guatemala -->
+  <link rel="stylesheet" href="css/style.css?v=15">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+
+<body>
+
+  <!-- ========================================================
+       BARRA DE NAVEGACIÓN PRINCIPAL
+       ======================================================== -->
+  <header class="header">
+    <div class="container">
+      <div class="header-top">
+        <div class="brand-wrapper" id="brandLogoBtn" title="Qgo Guatemala - Tu mandado al chilazo">
+          <img src="css/WEB/logo web.jpeg" alt="Logo Qgo" class="brand-logo-img">
+          <div class="brand-logo">
+            <span>Qgo</span>
+            <span class="brand-flag">🇬🇹</span>
+          </div>
+        </div>
+
+        <!-- Selector de Dirección con Modal -->
+        <div class="address-selector" id="btnAddressSelector" title="Haz clic para cambiar dirección en Guatemala">
+          <span class="address-pin">📍</span>
+          <span id="currentAddressText">Zona 14, Las Américas • Inmediato</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">▾</span>
+        </div>
+
+        <div class="search-bar-container">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="globalSearchInput" class="search-input"
+            placeholder="Buscar Campero, Big Mac, Pizza Hut, Whopper, Subway...">
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-orders-history" id="btnHeaderOrdersHistory" title="Ver historial de pedidos y tickets"
+            style="background: white; border: 1.5px solid var(--border-subtle); color: var(--text-main); padding: 8px 14px; border-radius: var(--radius-full); font-weight: 700; font-size: 0.84rem; display: none; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s ease;">
+            <span>📋</span>
+            <span>Mis Pedidos</span>
+          </button>
+
+          <button class="btn-cart" id="btnHeaderCart" title="Ver canasta de compra">
+            <span>🛒</span>
+            <span>Mi Pedido</span>
+            <span class="cart-count-badge" id="headerCartCount" style="display: none;">0</span>
+          </button>
+
+          <div class="user-account-badge" id="btnAccountSelector" title="Clic para cambiar de cuenta">
+            <span style="font-size: 1.2rem;">👤</span>
+            <div class="user-account-info">
+              <span class="user-name-text" id="headerUserName">Juan Carlos</span>
+              <span class="user-role-text" id="headerUserRole">CLIENTE</span>
+            </div>
+            <button class="btn-switch-account" id="btnLogoutBtn">Cambiar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-roles-bar">
+        <div class="active-role-banner" id="activeRoleBannerText">
+          Sesión activa como: <b style="color:var(--primary);">Juan Carlos</b> (<span
+            class="badge-role CLIENTE">CLIENTE</span>)
+        </div>
+        <div class="backend-status-pill offline" id="backendStatusPill"
+          title="Haz clic para probar conexión con Spring Boot">
+          🟡 Verificando Backend...
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ========================================================
+         VISTA 1: CLIENTE
+         ======================================================== -->
+    <section id="viewClient">
+      <!-- 1.1 HOME CLIENTE -->
+      <div id="clientHomeSection">
+        <div class="container">
+          <div class="hero-banner-section">
+            <div class="promo-banner">
+              <!-- Textos y Barra de Búsqueda Central Grande y Limpia -->
+              <div class="promo-content">
+                <div class="promo-tags-row">
+                  <span class="promo-tag">🇬🇹 100% Chapín</span>
+                  <span class="promo-tag-badge">⚡ Entregas en 25 min</span>
+                </div>
+                <h1 class="promo-title">Tus marcas favoritas en Quetzales hasta tu puerta</h1>
+                <p class="promo-subtitle">Pollo Campero, Burger King, Pizza Hut, Subway, Domino's y McDonald's con
+                  entrega ultrarrápida y rastreo GPS en vivo.</p>
+
+                <!-- Barra de búsqueda central grande y limpia -->
+                <div class="hero-search-box">
+                  <div class="hero-search-bar">
+                    <span class="hero-search-icon">🔍</span>
+                    <input type="text" id="heroCentralSearchInput" class="hero-search-input"
+                      placeholder="¿Qué se te antoja hoy? Campero, Whopper, Pizza, Subs...">
+                    <button type="button" class="btn-hero-search" id="btnHeroSearch">
+                      <span>Buscar</span>
+                    </button>
+                  </div>
+                  <div class="hero-quick-chips">
+                    <span class="quick-chip-hint">Popular:</span>
+                    <button type="button" class="hero-chip-btn" data-search="Campero">🍗 Campero</button>
+                    <button type="button" class="hero-chip-btn" data-search="Burger King">🍔 Burger King</button>
+                    <button type="button" class="hero-chip-btn" data-search="Pizza">🍕 Pizza</button>
+                    <button type="button" class="hero-chip-btn" data-search="Subway">🥪 Subway</button>
+                    <button type="button" class="hero-chip-btn" data-filter="free_delivery">🛵 Envío Gratis</button>
+                  </div>
+                </div>
+
+                <div class="hero-cta-row">
+                  <button class="btn-promo-cta" id="btnExploreNow">
+                    <span>Explorar Locales Populares</span>
+                    <span class="btn-arrow">➔</span>
+                  </button>
+                  <div class="hero-stat-pill">
+                    <span class="stat-star">⭐ 4.9</span>
+                    <span class="stat-text">+15,000 entregas felices</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ilustración Vectorial Moderna con Volcanes, Repartidor en Moto y Micro-animación -->
+              <div class="promo-illustration-wrapper">
+                <svg class="hero-vector-illustration" viewBox="0 0 540 380" fill="none"
+                  xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Repartidor de Qgo navegando por Guatemala">
+                  <defs>
+                    <linearGradient id="volcanoAguaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#0d5220" stop-opacity="0.85" />
+                      <stop offset="100%" stop-color="#02a54b" stop-opacity="0.25" />
+                    </linearGradient>
+                    <linearGradient id="volcanoPacayaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#146029" stop-opacity="0.75" />
+                      <stop offset="100%" stop-color="#02a54b" stop-opacity="0.2" />
+                    </linearGradient>
+                    <linearGradient id="routeGlow" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#ffde59" />
+                      <stop offset="45%" stop-color="#02a54b" />
+                      <stop offset="100%" stop-color="#E31837" />
+                    </linearGradient>
+                    <!-- Patrón textil maya modernizado en marca de agua -->
+                    <pattern id="mayanHeroPattern" width="36" height="36" patternUnits="userSpaceOnUse">
+                      <path d="M18 0 L36 18 L18 36 L0 18 Z" fill="none" stroke="#FFFFFF" stroke-width="1"
+                        stroke-opacity="0.12" />
+                      <path d="M18 6 L30 18 L18 30 L6 18 Z" fill="none" stroke="#ffde59" stroke-width="0.8"
+                        stroke-opacity="0.14" />
+                      <circle cx="18" cy="18" r="2.2" fill="#FFFFFF" fill-opacity="0.14" />
+                    </pattern>
+                    <filter id="neonGlowRoute" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3.5" result="blur" />
+                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                  </defs>
+
+                  <!-- Marca de agua textil maya de fondo -->
+                  <rect width="540" height="380" rx="20" fill="url(#mayanHeroPattern)" />
+
+                  <!-- Siluetas Minimalistas de Volcanes de Guatemala -->
+                  <!-- Volcán de Agua (imponente al fondo) -->
+                  <polygon points="130,290 280,95 430,290" fill="url(#volcanoAguaGrad)" />
+                  <polygon points="268,110 280,95 292,110 280,113" fill="#ffde59" fill-opacity="0.45" />
+
+                  <!-- Volcán Pacaya (activo a la izquierda) -->
+                  <polygon points="30,300 135,160 240,300" fill="url(#volcanoPacayaGrad)" />
+                  <polygon points="128,170 135,160 142,170 135,172" fill="#ffde59" fill-opacity="0.5" />
+                  <path d="M135,158 Q140,140 135,124 Q142,108 136,94" stroke="#ffde59" stroke-width="2.5"
+                    stroke-dasharray="3,4" stroke-linecap="round" opacity="0.6" />
+
+                  <!-- Mapa interactivo estilizado con cuadrícula de calles -->
+                  <g opacity="0.4">
+                    <ellipse cx="270" cy="315" rx="250" ry="60" fill="#000000" opacity="0.22" />
+                    <path d="M30 310 Q 150 250 270 300 T 510 270" stroke="#FFFFFF" stroke-width="2.2"
+                      stroke-dasharray="6,6" fill="none" />
+                    <path d="M60 270 Q 200 330 360 280 T 520 320" stroke="#81ae3a" stroke-width="2" fill="none" />
+                  </g>
+
+                  <!-- Ruta de entrega interactiva estilizada con brillo neón -->
+                  <path d="M70,305 C 160,250 240,330 340,270 C 400,230 450,250 490,260" stroke="url(#routeGlow)"
+                    stroke-width="5" stroke-linecap="round" fill="none" filter="url(#neonGlowRoute)" />
+
+                  <!-- Pin de entrega animado al destino -->
+                  <g transform="translate(488, 225)" class="hero-pin-pulse">
+                    <circle cx="0" cy="0" r="16" fill="#E31837" fill-opacity="0.25" class="pin-halo" />
+                    <path d="M-9,-18 C-9,-27 9,-27 9,-18 C9,-9 0,0 0,0 C0,0 -9,-9 -9,-18 Z" fill="#E31837"
+                      stroke="#FFFFFF" stroke-width="2" />
+                    <circle cx="0" cy="-18" r="4" fill="#FFFFFF" />
+                  </g>
+
+                  <!-- ILUSTRACIÓN DEL REPARTIDOR EN MOTO CHAPÍN (con rebote sutil al cargar) -->
+                  <g id="heroDeliveryBike" class="hero-bike-anim" transform="translate(195, 155)">
+                    <!-- Sombra dinámica bajo la moto -->
+                    <ellipse cx="65" cy="132" rx="55" ry="9" fill="#000000" opacity="0.28" class="bike-shadow" />
+
+                    <!-- Líneas de velocidad de viento -->
+                    <path d="M-22,65 L-4,65" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.7" />
+                    <path d="M-34,85 L-8,85" stroke="#ffde59" stroke-width="3" stroke-linecap="round" opacity="0.9" />
+                    <path d="M-26,105 L-6,105" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.6" />
+
+                    <!-- Rueda trasera -->
+                    <circle cx="24" cy="112" r="22" fill="#1E293B" stroke="#475569" stroke-width="4" />
+                    <circle cx="24" cy="112" r="13" fill="#64748B" />
+                    <circle cx="24" cy="112" r="6" fill="#ffde59" />
+
+                    <!-- Rueda delantera -->
+                    <circle cx="106" cy="112" r="22" fill="#1E293B" stroke="#475569" stroke-width="4" />
+                    <circle cx="106" cy="112" r="13" fill="#64748B" />
+                    <circle cx="106" cy="112" r="6" fill="#ffde59" />
+
+                    <!-- Chasis y cuerpo de la moto -->
+                    <path d="M24 112 L50 85 L78 85 L106 112 L75 112 L56 95 L34 112 Z" fill="#02a54b" />
+                    <path d="M26 118 L48 116 L56 108" stroke="#CBD5E1" stroke-width="4" stroke-linecap="round"
+                      fill="none" />
+                    <path d="M38 78 C42 74, 58 74, 68 78 L80 65 L94 65 L86 86 L52 86 Z" fill="#239414" />
+
+                    <!-- Manillar y faro delantero brillante -->
+                    <path d="M86 65 L92 48 L86 46" stroke="#1E293B" stroke-width="3.5" stroke-linecap="round"
+                      fill="none" />
+                    <polygon points="98,54 118,48 118,60" fill="#ffde59" opacity="0.6" />
+                    <circle cx="95" cy="54" r="5" fill="#ffde59" filter="url(#neonGlowRoute)" />
+
+                    <!-- Mochila térmica de Delivery (Estilo Qgo con logo y reflectivo) -->
+                    <rect x="16" y="32" width="30" height="36" rx="6" fill="#E31837" stroke="#B91C1C"
+                      stroke-width="1.5" />
+                    <rect x="16" y="52" width="30" height="5" fill="#ffde59" />
+                    <text x="31" y="46" font-family="'Outfit', sans-serif" font-weight="900" font-size="9.5"
+                      fill="#FFFFFF" text-anchor="middle">Qgo</text>
+
+                    <!-- Repartidor Chapín: Chaqueta y casco -->
+                    <path d="M42 48 C44 40, 60 40, 66 48 L76 72 L58 74 L42 66 Z" fill="#02a54b" />
+                    <path d="M48 57 L68 61" stroke="#ffde59" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M54 50 L78 54 L88 48" stroke="#02a54b" stroke-width="6" stroke-linecap="round"
+                      stroke-linejoin="round" fill="none" />
+
+                    <!-- Casco aerodinámico -->
+                    <circle cx="62" cy="30" r="13" fill="#1E293B" />
+                    <path d="M52 28 C56 20, 68 20, 72 28" stroke="#00A86B" stroke-width="3" fill="none" />
+                    <path d="M66 28 C72 28, 75 33, 74 36 L65 36 Z" fill="#ffde59" />
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="categories-section">
+            <div class="categories-scroll" id="categoriesScroll"></div>
+          </div>
+
+          <div class="filters-bar">
+            <button class="filter-chip active" data-filter="all">Todos los locales</button>
+            <button class="filter-chip" data-filter="favorites" id="filterFavoritesBtn">❤️ Favoritos</button>
+            <button class="filter-chip" data-filter="free_delivery">🛵 Envío Gratis</button>
+            <button class="filter-chip" data-filter="fast">⏱️ Menos de 25 min</button>
+            <button class="filter-chip" data-filter="promo">🏷️ Con Promociones</button>
+            <button class="filter-chip" data-filter="top">⭐ Top Calificados (4.8+)</button>
+          </div>
+
+          <div class="restaurants-section">
+            <div class="section-header">
+              <h2 class="section-title">Restaurantes Populares en Guatemala</h2>
+              <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Abiertos ahora</span>
+            </div>
+            <div class="restaurants-grid" id="restaurantsGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.2 MENÚ DEL RESTAURANTE: LAYOUT DE 2 COLUMNAS CON CARRITO SIEMPRE VISIBLE -->
+      <div id="clientRestaurantSection" class="restaurant-view" style="display: none;">
+        <div class="container">
+          <button class="btn-back" id="btnBackToHome">← Volver a Restaurantes</button>
+
+          <div class="restaurant-layout">
+            <!-- COLUMNA IZQUIERDA: MENÚ Y PLATILLOS -->
+            <div class="restaurant-main-col">
+              <div class="restaurant-header-card">
+                <div class="restaurant-header-banner">
+                  <img id="restBannerImg" src="" alt="Portada Restaurante">
+                </div>
+                <div class="restaurant-header-content">
+                  <div class="restaurant-info-main">
+                    <h1 id="restTitle">Restaurante</h1>
+                    <div class="restaurant-info-meta">
+                      <span id="restRating" class="rating-badge">★ 4.9</span>
+                      <span id="restTime">⏱️ 20-30 min</span>
+                      <span id="restFee" style="color: var(--accent-green); font-weight: 700;">🛵 Envío Gratis</span>
+                      <span id="restAddress">📍 Dirección</span>
+                    </div>
+
+                    <!-- Selector Inteligente de Sucursal Asignada -->
+                    <div class="rest-assigned-branch-badge-row" id="restBranchBadgeRow"
+                      style="margin-top: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                      <div class="branch-pill-active"
+                        style="display: inline-flex; align-items: center; gap: 8px; background: #F0FDF4; border: 1.5px solid #86EFAC; border-radius: var(--radius-full); padding: 6px 14px; font-size: 0.84rem; color: #166534; font-weight: 700;">
+                        <span>🏬 <b>Sucursal más cercana asignada:</b></span>
+                        <span id="restCurrentBranchName" style="color: #15803D;">Sucursal Las Américas (Zona 14)</span>
+                        <span id="restCurrentBranchDistance"
+                          style="background: #DCFCE7; padding: 2px 8px; border-radius: 10px; font-size: 0.76rem;">(a 0.3
+                          km)</span>
+                        <span
+                          style="background: #BBF7D0; color: #14532D; font-size: 0.72rem; padding: 2px 6px; border-radius: 8px; font-weight: 800;">⚡
+                          Auto GPS</span>
+                      </div>
+                      <button type="button" class="btn-change-branch-pill" id="btnOpenBranchModal"
+                        title="Ver lista de todas las sucursales"
+                        style="background: white; border: 1.5px solid var(--border-subtle); color: var(--text-muted); font-weight: 600; font-size: 0.78rem; padding: 6px 12px; border-radius: var(--radius-full); cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;">
+                        <span>Ver otras sucursales</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="menu-nav-tabs" id="menuNavTabs"></div>
+              <div id="menuItemsContainer"></div>
+            </div>
+
+            <!-- COLUMNA DERECHA: CARRITO FIJO SIEMPRE VISIBLE (DESKTOP) -->
+            <aside class="sticky-cart-sidebar">
+              <div class="sidebar-cart-header">
+                <h3 class="sidebar-cart-title">Tu Pedido</h3>
+                <span id="sidebarRestaurantName"
+                  style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Restaurante</span>
+              </div>
+
+              <!-- Lista de ítems en la barra lateral -->
+              <div class="sidebar-items-scroll" id="sidebarCartItemsList">
+                <div id="sidebarCartEmptyMsg" style="text-align: center; padding: 30px 10px; color: var(--text-muted);">
+                  <div style="font-size: 2.5rem; margin-bottom: 8px;">🛒</div>
+                  <div style="font-weight: 700; font-size: 0.95rem;">Tu canasta está vacía</div>
+                  <div style="font-size: 0.8rem; margin-top: 4px;">Selecciona platillos del menú para agregarlos.</div>
+                </div>
+              </div>
+
+              <!-- Desglose de Precios -->
+              <div style="padding-top: 14px; border-top: 1px solid var(--border-subtle);">
+                <div class="price-row">
+                  <span>Subtotal</span>
+                  <span id="sidebarSubtotal">Q0</span>
+                </div>
+                <div class="price-row">
+                  <span>Costo de envío</span>
+                  <span id="sidebarDeliveryFee">Gratis</span>
+                </div>
+                <div class="price-row">
+                  <span>Tarifa de servicio Qgo</span>
+                  <span>Q5</span>
+                </div>
+                <div class="price-row total">
+                  <span>Total a Pagar</span>
+                  <span id="sidebarTotal" style="color: var(--primary);">Q0</span>
+                </div>
+
+                <button class="btn-sidebar-checkout" id="btnSidebarCheckout" disabled style="opacity: 0.5;">
+                  Ir a Pagar ➔
+                </button>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.3 RASTREO EN VIVO CON MAPA LEAFLET REAL DE GUATEMALA -->
+      <div id="clientTrackingSection" class="tracking-view" style="display: none;">
+        <div class="container">
+          <button class="btn-back" id="btnBackFromTracking">← Volver a Explorar</button>
+
+          <div class="tracking-grid">
+            <div class="tracking-main-card">
+              <div class="tracking-header">
+                <div class="estimated-time-badge" id="trackTimeEstimate">
+                  ⏱️ Llegada aprox. en 18 min
+                </div>
+                <h2 class="tracking-headline" id="trackingHeadline">Tu repartidor va en camino</h2>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 6px;">
+                  Pedido <b id="trackOrderId">#QGO-7742</b> • <span id="trackRestName">Pollo Campero</span>
+                </p>
+                <div id="trackBranchBadge"
+                  style="display: inline-flex; align-items: center; gap: 6px; background: #F0FDF4; color: #166534; font-size: 0.82rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; border: 1px solid #BBF7D0; margin-bottom: 12px;">
+                  📍 Cocina Asignada: <span id="trackBranchName">Sucursal Las Américas (Zona 14)</span>
+                </div>
+
+                <!-- Stepper de 4 fases con iconografía oficial Qgo -->
+                <div class="order-stepper">
+                  <div class="stepper-progress-fill" id="stepperProgressFill" style="width: 70%;"></div>
+
+                  <div class="step-node completed" id="stepNode1">
+                    <div class="step-icon-circle">
+                      <img src="css/WEB/1.1.jpeg" alt="Confirmado" class="step-icon-img" id="stepImg1">
+                    </div>
+                    <span class="step-label">Confirmado</span>
+                  </div>
+                  <div class="step-node completed" id="stepNode2">
+                    <div class="step-icon-circle">
+                      <img src="css/WEB/2.1.jpeg" alt="En Cocina" class="step-icon-img" id="stepImg2">
+                    </div>
+                    <span class="step-label">En Cocina</span>
+                  </div>
+                  <div class="step-node active" id="stepNode3">
+                    <div class="step-icon-circle">
+                      <img src="css/WEB/3.jpeg" alt="En Camino" class="step-icon-img" id="stepImg3">
+                    </div>
+                    <span class="step-label">En Camino</span>
+                  </div>
+                  <div class="step-node" id="stepNode4">
+                    <div class="step-icon-circle">
+                      <img src="css/WEB/4.jpeg" alt="Entregado" class="step-icon-img" id="stepImg4">
+                    </div>
+                    <span class="step-label">Entregado</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- BARRA DE CONTROL GOOGLE MAPS -->
+              <div class="map-controls-bar">
+                <div class="map-provider-badge">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg"
+                    alt="Google Maps" style="width: 20px; height: 20px;">
+                  <span id="mapProviderLabel">Google Maps</span>
+                  <span class="badge-free" id="badgeMapMode">Directo Gratis</span>
+                </div>
+
+                <div class="map-layer-buttons">
+                  <button type="button" class="btn-layer-toggle active" id="btnLayerStreets"
+                    title="Vista estándar de calles Google">🛣️ Calles</button>
+                  <button type="button" class="btn-layer-toggle" id="btnLayerSat"
+                    title="Vista satélite de alta definición Google">🛰️ Satélite</button>
+                  <button type="button" class="btn-layer-toggle" id="btnLayerTerrain" title="Vista relieve Google">🏔️
+                    Terreno</button>
+                  <button type="button" class="btn-layer-config" id="btnOpenMapConfig"
+                    title="Configurar Google Maps API Oficial / Clave" style="display: none !important;">⚙️ API
+                    Key</button>
+                </div>
+              </div>
+
+              <!-- CONTENEDOR DEL MAPA (LEAFLET CON CAPAS GOOGLE MAPS / GOOGLE SDK) -->
+              <div id="mapWrapper">
+                <div id="leafletMapContainer"></div>
+                <div id="googleMapsSdkContainer" style="display: none;"></div>
+              </div>
+
+              <!-- Ficha del Repartidor (Entidad Repartidor & Rastreable) -->
+              <div class="driver-card">
+                <div class="driver-profile">
+                  <img
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
+                    alt="Repartidor" class="driver-avatar">
+                  <div>
+                    <div class="driver-name" id="trackDriverName">Erick Morales</div>
+                    <div class="driver-vehicle" id="trackDriverVehicle">Pulsar NS 200 - Placa M-789XYZ</div>
+                    <div class="driver-rating" id="trackDriverRating">★ 4.9 (340 entregas en Guatemala)</div>
+                  </div>
+                </div>
+                <div class="driver-contact-actions">
+                  <button class="btn-contact" id="btnCallDriver" title="Llamar repartidor"
+                    aria-label="Llamar repartidor">📞</button>
+                  <button class="btn-contact" id="btnChatDriver" title="Chatear con repartidor"
+                    aria-label="Chatear con repartidor">💬</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resumen y Controles de Simulación para Exposición -->
+            <div>
+              <div
+                style="background: white; border-radius: var(--radius-lg); padding: 24px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); margin-bottom: 16px;">
+                <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 14px;">Resumen del Pedido</h3>
+                <div id="trackOrderItemsList"></div>
+              </div>
+
+              <!-- CONTROL DEL RECORRIDO PROGRESIVO GPS (SIN SALTOS) -->
+              <div class="simulation-bar"
+                style="background: linear-gradient(135deg, #14532D 0%, #02a54b 100%); color: white; border-radius: var(--radius-md); padding: 16px; border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 6px 18px rgba(2,165,75,0.25);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <div>
+                    <div style="font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                      <span>🛵</span>
+                      <span>Rastreo GPS en Tiempo Real (Recorrido Progresivo)</span>
+                    </div>
+                    <div style="font-size: 0.78rem; opacity: 0.9; margin-top: 2px;">
+                      La moto avanza progresivamente sobre las calles de Guatemala sin saltos
+                    </div>
+                  </div>
+                  <div
+                    style="font-size: 0.84rem; font-weight: 800; background: rgba(255,255,255,0.25); padding: 4px 12px; border-radius: var(--radius-full); white-space: nowrap;"
+                    id="trackingGpsLivePct">
+                    0% en ruta
+                  </div>
+                </div>
+
+                <!-- Barra de progreso visual progresiva -->
+                <div
+                  style="width: 100%; height: 9px; background: rgba(0,0,0,0.2); border-radius: 5px; overflow: hidden; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.3);">
+                  <div id="trackingGpsProgressBar"
+                    style="width: 0%; height: 100%; background: linear-gradient(90deg, #ffde59 0%, #86EFAC 100%); border-radius: 4px; transition: width 0.15s linear;">
+                  </div>
+                </div>
+
+                <div
+                  style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <button type="button" class="btn-simulate" id="btnStartProgressiveRoute"
+                      style="background: white; color: #14532D; font-weight: 800; padding: 8px 18px; border-radius: var(--radius-full); cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(0,0,0,0.15); transition: all 0.2s;">
+                      <span>▶</span>
+                      <span id="btnStartProgressiveText">Iniciar Recorrido en Vivo</span>
+                    </button>
+                    <button type="button" class="btn-simulate" id="btnToggleSpeed"
+                      style="background: rgba(255,255,255,0.22); color: white; font-weight: 700; padding: 8px 14px; border-radius: var(--radius-full); cursor: pointer; border: 1px solid rgba(255,255,255,0.35); font-size: 0.82rem;">
+                      ⚡ Vel: 1x
+                    </button>
+                  </div>
+                  <div style="display: flex; gap: 6px;">
+                    <button type="button" class="btn-simulate" id="btnDeliverNow"
+                      style="background: rgba(255,255,255,0.15); color: white; font-size: 0.78rem; padding: 7px 12px; border-radius: var(--radius-full); cursor: pointer; border: 1px solid rgba(255,255,255,0.25);"
+                      title="Finalizar entrega en domicilio">
+                      ✓ Llegó a destino
+                    </button>
+                    <button type="button" class="btn-simulate" id="btnAutoSimulate" style="display: none;">Auto</button>
+                    <button type="button" class="btn-simulate" id="btnSimulateStep" style="display: none;">Paso</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botón Volver a Pedir (aparece cuando la orden es entregada) -->
+              <div id="reorderActionContainer" style="display: none; margin-top: 14px;">
+                <button type="button" class="btn-promo" id="btnReorderOrder"
+                  style="width: 100%; justify-content: center; padding: 12px; font-weight: 800;">
+                  🔄 Volver a pedir estos mismos platillos
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VISTA 2: COMERCIO (COCINA Y GESTIÓN DE MENÚ)
+         ======================================================== -->
+    <section id="viewComercio" class="dashboard-section" style="display: none;">
+      <div class="container">
+        <div class="dashboard-header">
+          <div>
+            <h2 style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800;" id="comercioTitle">Panel
+              del Comercio</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Gestión de pedidos en tiempo real y administración
+              de platillos del menú.</p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn-promo" style="background: white; border: 1.5px solid var(--border-subtle); color: var(--text-main);" onclick="document.getElementById('brandLogoBtn').click()">🍽️ Ver Menú de Clientes</button>
+            <button type="button" class="btn-promo" onclick="openAccountSelector()">Cambiar de Cuenta</button>
+          </div>
+        </div>
+
+        <div class="comercio-nav-tabs">
+          <button class="comercio-tab-btn active" id="tabComercioOrders">🔔 Pedidos en Vivo (Cocina)</button>
+          <button class="comercio-tab-btn" id="tabComercioMenu">🍽️ Administrar Menú (Agregar Platillos)</button>
+        </div>
+
+        <div id="comercioOrdersSection">
+          <div class="kanban-grid">
+            <div class="kanban-column">
+              <div class="kanban-col-header">
+                <span>🔔 Nuevos Pedidos</span>
+              </div>
+              <div id="comercioColNuevos"></div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="kanban-col-header">
+                <span>👨‍🍳 En Preparación</span>
+              </div>
+              <div id="comercioColCocina"></div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="kanban-col-header">
+                <span>🛵 Listos para Entrega</span>
+              </div>
+              <div id="comercioColListos"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="comercioMenuSection" style="display: none;">
+          <div class="menu-management-card">
+            <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 12px; color: var(--text-main);">
+              ➕ Agregar Nuevo Platillo al Menú de <span id="comercioRestNameText">tu Restaurante</span>
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 18px;">
+              Los platillos que agregues aquí aparecerán de inmediato para los clientes en la tienda.
+            </p>
+
+            <form id="formAddNewDish"
+              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+              <div>
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Nombre del
+                  Platillo</label>
+                <input type="text" id="newDishName" placeholder="Ej: Combo Alitas Picantes Chapinas" required
+                  style="width: 100%;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Categoría del
+                  Menú</label>
+                <input type="text" id="newDishCategory" placeholder="Ej: Especiales, Combos, Almuerzos" required
+                  style="width: 100%;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Precio en
+                  Quetzales (Q)</label>
+                <input type="number" id="newDishPrice" placeholder="55" min="1" required style="width: 100%;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Tipo de Foto</label>
+                <select id="newDishImageSelect" style="width: 100%;">
+                  <option value="https://images.unsplash.com/photo-1562967914-608f82629710?w=600">🍗 Pollo / Alitas Crujientes</option>
+                  <option value="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600">🍔 Hamburguesa Artesanal</option>
+                  <option value="https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600">🍕 Pizza con Queso</option>
+                  <option value="https://images.unsplash.com/photo-1619740455993-9e612b1af08a?w=600">🌭 Shuco Típico</option>
+                  <option value="https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600">🍦 Postre / Helado</option>
+                  <option value="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600">🥗 Ensalada Fresca</option>
+                  <option value="https://images.unsplash.com/photo-1544025162-d76694265947?w=600">🥩 Carnes y Asados</option>
+                </select>
+
+                <!-- Subir foto personalizada con preview -->
+                <div style="margin-top: 8px; display: flex; align-items: center; gap: 10px;">
+                  <label for="newDishFileInput" class="btn-promo" style="padding: 6px 14px; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
+                    📷 Subir foto propia
+                  </label>
+                  <input type="file" id="newDishFileInput" accept="image/*" style="display: none;">
+                  <img id="newDishPreviewImg" src="https://images.unsplash.com/photo-1562967914-608f82629710?w=600" alt="Preview" style="width: 42px; height: 42px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border-subtle);">
+                  <span id="newDishFileLabel" style="font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">Foto predeterminada</span>
+                </div>
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Descripción del
+                  Platillo</label>
+                <textarea id="newDishDesc" placeholder="Describe los ingredientes, acompañamientos y sabor..." required
+                  style="width: 100%; height: 60px;"></textarea>
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <button type="submit" class="btn-promo" style="padding: 12px 28px;">
+                  ➕ Guardar y Publicar en el Menú
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div
+            style="background: white; border-radius: var(--radius-lg); padding: 24px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+            <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 16px;">Platillos Actualmente en el Menú</h3>
+            <div id="comercioDishesList"
+              style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VISTA 3: REPARTIDOR
+         ======================================================== -->
+    <section id="viewRepartidor" class="dashboard-section" style="display: none;">
+      <div class="container">
+        <div class="dashboard-header">
+          <div>
+            <h2 style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800;">Panel del Repartidor
+              Chapín 🛵</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+              Control de pedidos en vivo, actualización GPS de ruta y billetera de propinas en Quetzales.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn-promo" style="background: white; border: 1.5px solid var(--border-subtle); color: var(--text-main);" onclick="document.getElementById('brandLogoBtn').click()">🍽️ Ver Menú de Clientes</button>
+            <button type="button" class="btn-promo" onclick="openAccountSelector()">Cambiar de Cuenta</button>
+          </div>
+        </div>
+
+        <!-- Billetera y Métricas del Repartidor -->
+        <div class="kpi-cards-grid" style="margin-bottom: 24px;">
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background: #DCFCE7;">💵</div>
+            <div>
+              <div class="kpi-value" id="driverKpiEarnings">Q245.00</div>
+              <div class="kpi-title">Ganancias de Entregas</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background: #FEF3C7;">🪙</div>
+            <div>
+              <div class="kpi-value" id="driverKpiTips">Q48.00</div>
+              <div class="kpi-title">Propinas Acumuladas</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background: #E0F2FE;">🛵</div>
+            <div>
+              <div class="kpi-value" id="driverKpiCount">8</div>
+              <div class="kpi-title">Entregas Hoy</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="max-width: 760px; margin: 0 auto;">
+          <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 14px;">📦 Pedidos Disponibles y en Curso</h3>
+          <div id="repartidorOrdersList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VISTA 4: ADMINISTRADOR
+         ======================================================== -->
+    <section id="viewAdmin" class="dashboard-section" style="display: none;">
+      <div class="container">
+        <div class="dashboard-header">
+          <div>
+            <h2 style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800;">Panel de Administración General</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+              Control global de la plataforma: monitoreo en vivo de pedidos, gestión de usuarios, comercios y cupones.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn-promo" style="background: white; border: 1.5px solid var(--border-subtle); color: var(--text-main);" onclick="document.getElementById('brandLogoBtn').click()">🍽️ Ver Menú de Clientes</button>
+            <button type="button" class="btn-promo" onclick="openAccountSelector()">Cambiar de Cuenta</button>
+          </div>
+        </div>
+
+        <!-- Pestañas de Navegación del Administrador -->
+        <div class="comercio-nav-tabs" style="margin-bottom: 22px;">
+          <button class="comercio-tab-btn active" id="tabAdminOrders">📊 Pedidos Globales y Métricas</button>
+          <button class="comercio-tab-btn" id="tabAdminUsers">👥 Gestión de Usuarios</button>
+          <button class="comercio-tab-btn" id="tabAdminRestaurants">🏬 Comercios Aliados</button>
+          <button class="comercio-tab-btn" id="tabAdminCoupons">🏷️ Cupones y Promociones</button>
+        </div>
+
+        <!-- ================= PESTAÑA 1: PEDIDOS GLOBALES Y MÉTRICAS ================= -->
+        <div id="adminSectionOrders">
+          <div class="kpi-cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 24px;">
+            <div class="kpi-card">
+              <div class="kpi-icon" style="background: #E0F2FE;">📦</div>
+              <div>
+                <div class="kpi-value" id="adminKpiOrders">0</div>
+                <div class="kpi-title">Pedidos Totales</div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon" style="background: #DCFCE7;">💰</div>
+              <div>
+                <div class="kpi-value" id="adminKpiSales">Q0.00</div>
+                <div class="kpi-title">Ventas Totales en Q</div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon" style="background: #FEF3C7;">🪙</div>
+              <div>
+                <div class="kpi-value" id="adminKpiPlatformEarnings">Q0.00</div>
+                <div class="kpi-title">Ingresos Qgo (Servicio)</div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon" style="background: #F3E8FF;">🛵</div>
+              <div>
+                <div class="kpi-value" id="adminKpiTips">Q0.00</div>
+                <div class="kpi-title">Propinas a Repartidores</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monitor de Pedidos Globales en Vivo -->
+          <div style="background: white; border-radius: var(--radius-lg); padding: 22px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+              <div>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0 0 4px 0;">Monitor de Todos los Pedidos en Vivo</h3>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Supervisa, reasigna o cambia el estado de cualquier orden despachada en la red.</p>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" class="btn-filter-admin-orders active" data-filter="all" style="padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border-subtle); background: white; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Todos</button>
+                <button type="button" class="btn-filter-admin-orders" data-filter="active" style="padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border-subtle); background: white; font-weight: 700; font-size: 0.78rem; cursor: pointer;">⚡ En Vivo (Cocina / Ruta)</button>
+                <button type="button" class="btn-filter-admin-orders" data-filter="completed" style="padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border-subtle); background: white; font-weight: 700; font-size: 0.78rem; cursor: pointer;">✅ Entregados</button>
+              </div>
+            </div>
+
+            <div class="data-table-card" style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID Pedido</th>
+                    <th>Cliente</th>
+                    <th>Restaurante / Sucursal</th>
+                    <th>Repartidor</th>
+                    <th>Total</th>
+                    <th>Pago</th>
+                    <th>Estado</th>
+                    <th style="text-align: right;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="adminOrdersTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= PESTAÑA 2: GESTIÓN DE USUARIOS ================= -->
+        <div id="adminSectionUsers" style="display: none;">
+          <!-- Registrar Nuevo Usuario -->
+          <div style="background: white; border-radius: var(--radius-lg); padding: 22px; border: 1px solid var(--border-subtle); margin-bottom: 22px; box-shadow: var(--shadow-sm);">
+            <div style="margin-bottom: 14px;">
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0 0 4px 0;">➕ Registrar Nuevo Usuario en el Sistema</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Sincronizado con la base de datos de usuarios (Spring Boot + fallback reactivo).</p>
+            </div>
+
+            <form id="adminCreateUserForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) 140px; gap: 12px; align-items: end;">
+              <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Nombre Completo</label>
+                <input type="text" id="newUserName" placeholder="Ej: María López" required style="width: 100%;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Correo Electrónico</label>
+                <input type="email" id="newUserEmail" placeholder="maria@correo.gt" required style="width: 100%;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Contraseña</label>
+                <input type="password" id="newUserPass" placeholder="******" required style="width: 100%;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Rol Asignado</label>
+                <select id="newUserRole" style="width: 100%;">
+                  <option value="CLIENTE">CLIENTE</option>
+                  <option value="COMERCIO">COMERCIO</option>
+                  <option value="REPARTIDOR">REPARTIDOR</option>
+                  <option value="ADMINISTRADOR">ADMINISTRADOR</option>
+                </select>
+              </div>
+              <button type="submit" class="btn-promo" style="padding: 11px; justify-content: center; width: 100%;">
+                Guardar
+              </button>
+            </form>
+          </div>
+
+          <!-- Directorio de Usuarios -->
+          <div style="background: white; border-radius: var(--radius-lg); padding: 22px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+              <div>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0 0 4px 0;">Directorio de Cuentas (<span id="adminUsersCountText">0</span>)</h3>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Administra permisos, edita credenciales o da de baja usuarios.</p>
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <input type="text" id="adminUserSearchInput" placeholder="🔍 Buscar por nombre o correo..." style="padding: 7px 12px; font-size: 0.82rem; border-radius: 6px; border: 1px solid var(--border-subtle); min-width: 220px;">
+                <select id="adminUserRoleFilter" style="padding: 7px 10px; font-size: 0.82rem; border-radius: 6px; border: 1px solid var(--border-subtle);">
+                  <option value="ALL">Todos los roles</option>
+                  <option value="CLIENTE">Solo Clientes</option>
+                  <option value="COMERCIO">Solo Comercios</option>
+                  <option value="REPARTIDOR">Solo Repartidores</option>
+                  <option value="ADMINISTRADOR">Solo Admins</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="data-table-card" style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th style="text-align: right;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUsersTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= PESTAÑA 3: COMERCIOS Y SUCURSALES ================= -->
+        <div id="adminSectionRestaurants" style="display: none;">
+          <div style="background: white; border-radius: var(--radius-lg); padding: 22px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+            <div style="margin-bottom: 18px;">
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0 0 4px 0;">Restaurantes Aliados Oficiales de Guatemala</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Supervisa la disponibilidad de marcas, sucursales y platillos activos en la aplicación.</p>
+            </div>
+            <div id="adminRestaurantsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;"></div>
+          </div>
+        </div>
+
+        <!-- ================= PESTAÑA 4: CUPONES Y DESCUENTOS ================= -->
+        <div id="adminSectionCoupons" style="display: none;">
+          <!-- Crear Nuevo Cupón -->
+          <div style="background: white; border-radius: var(--radius-lg); padding: 22px; border: 1px solid var(--border-subtle); margin-bottom: 22px; box-shadow: var(--shadow-sm);">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0 0 4px 0;">🏷️ Crear Nuevo Cupón de Descuento</h3>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">Los cupones que crees aquí se activarán al instante en la pasarela de pago para todos los clientes.</p>
+
+            <form id="adminCreateCouponForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) 140px; gap: 12px; align-items: end;">
+              <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Código del Cupón</label>
+                <input type="text" id="newCouponCode" placeholder="Ej: FERIA2026, NAVIDAD" required style="text-transform: uppercase; width: 100%;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Tipo de Beneficio</label>
+                <select id="newCouponType" style="width: 100%;">
+                  <option value="fixed">Descuento en Quetzales (-Q)</option>
+                  <option value="percent">Porcentaje de Descuento (-%)</option>
+                  <option value="free_delivery">Envío Gratis (Q0 de flete)</option>
+                </select>
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Valor (Monto o %)</label>
+                <input type="number" id="newCouponValue" placeholder="15" min="0" required style="width: 100%;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Descripción / Etiqueta</label>
+                <input type="text" id="newCouponLabel" placeholder="Ej: Q15 de ahorro" required style="width: 100%;">
+              </div>
+              <button type="submit" class="btn-promo" style="padding: 11px; justify-content: center; width: 100%;">
+                Crear Cupón
+              </button>
+            </form>
+          </div>
+
+          <!-- Cupones Existentes -->
+          <div style="background: white; border-radius: var(--radius-lg); padding: 22px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 16px;">Cupones Activos en la Plataforma</h3>
+            <div id="adminCouponsListContainer"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOTÓN FLOTANTE DE CARRITO (DESKTOP / TABLET CON INDICADOR ROJO BRILLANTE) -->
+    <button class="floating-cart-fab" id="floatingCartFab" title="Ver mi canasta de pedidos" style="display: none;">
+      <div class="floating-cart-icon-wrap">
+        <span style="font-size: 1.35rem;">🛒</span>
+        <span class="floating-cart-badge" id="floatingCartCount">0</span>
+      </div>
+      <div class="floating-cart-text">
+        <span class="floating-cart-label">Mi Canasta</span>
+        <span class="floating-cart-total" id="floatingCartTotal">Q0.00</span>
+      </div>
+    </button>
+
+    <!-- BARRA FLOTANTE DE CARRITO PARA MÓVIL (VISIBLE EN PANTALLAS PEQUEÑAS CUANDO HAY PRODUCTOS) -->
+    <div class="mobile-cart-bar" id="mobileCartBar" style="display: none;">
+      <div class="mobile-cart-info">
+        <span class="mobile-cart-badge" id="mobileCartCount">0</span>
+        <div class="mobile-cart-text">
+          <div class="mobile-cart-title" id="mobileCartRestName">Tu Pedido Chapín</div>
+          <div class="mobile-cart-total" id="mobileCartTotal">Q0</div>
+        </div>
+      </div>
+      <button type="button" class="mobile-cart-btn" id="btnOpenMobileCart" aria-label="Abrir canasta de compra">
+        <span>Ver Carrito ➔</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- ========================================================
+       MODALES
+       ======================================================== -->
+
+  <!-- Modal Selector de Dirección en Guatemala -->
+  <div class="modal-backdrop" id="addressModal">
+    <div class="modal-window">
+      <button class="btn-close-modal" id="btnCloseAddressModal" aria-label="Cerrar modal de dirección">✕</button>
+      <div class="modal-body" style="padding: 24px;">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>📍</span> Ubica tu Hogar en el Mapa
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+          Toca o arrastra el mapa para fijar tu casa. Buscaremos automáticamente la <b>sucursal más cercana</b> con el
+          menor tiempo de entrega.
+        </p>
+
+        <!-- Barra de búsqueda y botón de GPS actual -->
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="text" id="addressSearchInput" placeholder="Busca colonia o dirección en Guatemala..."
+            style="flex: 1; padding: 10px 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); font-size: 0.88rem;">
+          <button type="button" class="btn-promo" id="btnGeolocateMe" title="Detectar mi GPS actual"
+            style="padding: 10px 16px; white-space: nowrap; font-size: 0.85rem; gap: 4px;">
+            📍 Mi GPS
+          </button>
+        </div>
+
+        <!-- Mini-Mapa Interactivo para Fijar el Pin de la Casa -->
+        <div
+          style="position: relative; border-radius: var(--radius-md); overflow: hidden; border: 1.5px solid var(--border-subtle); margin-bottom: 12px; box-shadow: var(--shadow-sm);">
+          <div id="addressPickerMap"></div>
+          <div
+            style="position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+            <span>🏠 <b>Arrastra el pin</b> a tu casa</span>
+            <span id="pinCoordsBadge"
+              style="font-family: monospace; font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">14.5857,
+              -90.5185</span>
+          </div>
+        </div>
+
+        <!-- Direcciones Frecuentes Guardadas -->
+        <div style="margin-bottom: 14px;">
+          <label
+            style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-muted);">
+            <span>⭐ Tus Direcciones Frecuentes Guardadas:</span>
+            <button type="button" id="btnSaveCurrentToFavorites"
+              style="background: none; border: none; color: var(--primary); font-size: 0.76rem; font-weight: 700; cursor: pointer; text-decoration: underline;">+
+              Guardar actual</button>
+          </label>
+          <div id="savedAddressesRow" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+        </div>
+
+        <!-- Zonas Predeterminadas de Ciudad de Guatemala -->
+        <label
+          style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-muted);">
+          O elige una zona predeterminada de Guatemala:
+        </label>
+        <div class="location-preset-grid" id="locationPresetGrid">
+          <button type="button" class="location-preset-pill active" data-id="loc-z14">📍 Zona 14 (Las Américas)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-z10">📍 Zona 10 (Zona Viva)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-z11">📍 Zona 11 (Roosevelt)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-z16">📍 Zona 16 (Cayalá)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-z1">📍 Zona 1 (Centro)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-z4">📍 Zona 4 (Grados Norte)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-z15">📍 Zona 15 (Vista Hermosa)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-z9">📍 Zona 9 (Plaza España)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-z12">📍 Zona 12 (Aguilar Batres)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-z7">📍 Zona 7 (Peri Roosevelt)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-ces">📍 Carretera a El Salvador</button>
+          <button type="button" class="location-preset-pill" data-id="loc-mixco">📍 Mixco (San Cristóbal)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-amatitlan">📍 Amatitlán (Centro / Calzada
+            Asiole)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-villanueva">📍 Villa Nueva
+            (Metrocentro)</button>
+          <button type="button" class="location-preset-pill" data-id="loc-antigua">📍 Antigua Guatemala</button>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Dirección de entrega
+            confirmada:</label>
+          <input type="text" id="customAddressInput" value="10ma Avenida 14-25, Zona 14, Edificio Las Américas"
+            style="width: 100%; margin-bottom: 12px; padding: 10px 12px; font-size: 0.88rem;">
+          <button class="btn-promo" id="btnSaveCustomAddress"
+            style="width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem;">
+            Confirmar Mi Hogar y Buscar Restaurantes 🏠➔
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Modificar Dirección Frecuente Guardada -->
+  <div class="modal-backdrop" id="editAddressModal">
+    <div class="modal-window" style="max-width: 440px;">
+      <button class="btn-close-modal" id="btnCloseEditAddressModal" aria-label="Cerrar modal de dirección">✕</button>
+      <div class="modal-body" style="padding: 24px;">
+        <h3 class="modal-title" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+          <span>✏️</span> Modificar Dirección Guardada
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+          Actualiza el nombre de referencia y la dirección física para tus entregas.
+        </p>
+
+        <form id="formEditAddress" style="display: flex; flex-direction: column; gap: 14px;">
+          <input type="hidden" id="editAddressId">
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Nombre o Etiqueta (Ej: Casa, Oficina, Casa de Carlos)</label>
+            <input type="text" id="editAddressLabelInput" required style="width: 100%;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Dirección completa de entrega</label>
+            <input type="text" id="editAddressFullInput" required style="width: 100%;">
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+            <button type="button" class="btn-cancel" id="btnCancelEditAddress" style="padding: 10px 18px; border: 1px solid var(--border-subtle); background: white; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-promo" style="padding: 10px 22px;">
+              💾 Guardar Dirección
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Editar Usuario desde el Panel de Administración -->
+  <div class="modal-backdrop" id="adminEditUserModal">
+    <div class="modal-window" style="max-width: 480px;">
+      <button class="btn-close-modal" id="btnCloseAdminEditUserModal" aria-label="Cerrar modal de edición">✕</button>
+      <div class="modal-body" style="padding: 24px;">
+        <h3 class="modal-title" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+          <span>✏️</span> Modificar Usuario
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+          Edita el nombre, correo, contraseña y rol del usuario.
+        </p>
+
+        <form id="formAdminEditUser" style="display: flex; flex-direction: column; gap: 14px;">
+          <input type="hidden" id="adminEditUserId">
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Nombre Completo</label>
+            <input type="text" id="adminEditUserName" required style="width: 100%;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Correo Electrónico</label>
+            <input type="email" id="adminEditUserEmail" required style="width: 100%;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Contraseña</label>
+            <input type="text" id="adminEditUserPass" required style="width: 100%;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Rol</label>
+            <select id="adminEditUserRole" style="width: 100%;">
+              <option value="CLIENTE">CLIENTE (Realiza pedidos y rastrea)</option>
+              <option value="COMERCIO">COMERCIO (Panel de cocina y menú)</option>
+              <option value="REPARTIDOR">REPARTIDOR (Entregas y GPS)</option>
+              <option value="ADMINISTRADOR">ADMINISTRADOR (Control total)</option>
+            </select>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+            <button type="button" class="btn-cancel" id="btnCancelAdminEditUser" style="padding: 10px 18px; border: 1px solid var(--border-subtle); background: white; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-promo" style="padding: 10px 22px;">
+              💾 Guardar Cambios
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Autenticación / Cambio de Cuenta por Rol -->
+  <div class="modal-backdrop" id="authModal">
+    <div class="modal-window">
+      <button class="btn-close-modal" id="btnCloseAuthModal" aria-label="Cerrar modal de autenticación">✕</button>
+      <div class="modal-body">
+        <h3 class="modal-title" style="text-align: center; margin-bottom: 4px;">Acceso a tu Cuenta</h3>
+        <p style="text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+          Inicia sesión o selecciona un perfil para continuar en Qgo
+        </p>
+
+        <div class="auth-tabs">
+          <div class="auth-tab active" id="tabAuthLogin">Iniciar Sesión</div>
+          <div class="auth-tab" id="tabAuthRegister">Crear Cuenta</div>
+        </div>
+
+        <form id="formAuthLogin" style="display: block; margin-bottom: 20px;">
+          <div style="margin-bottom: 12px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Correo
+              electrónico</label>
+            <input type="email" id="loginEmailInput" placeholder="juan.guatemala@qgo.gt" required style="width: 100%;">
+          </div>
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Contraseña</label>
+            <input type="password" id="loginPassInput" placeholder="123" required style="width: 100%;">
+          </div>
+          <button type="submit" class="btn-promo" style="width: 100%; justify-content: center; padding: 12px;">
+            Entrar a la Cuenta ➔
+          </button>
+        </form>
+
+        <form id="formAuthRegister" style="display: none; margin-bottom: 20px;">
+          <div style="margin-bottom: 10px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Nombre
+              completo</label>
+            <input type="text" id="regNameInput" placeholder="Ej: Roberto Paiz" required style="width: 100%;">
+          </div>
+          <div style="margin-bottom: 10px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Correo
+              electrónico</label>
+            <input type="email" id="regEmailInput" placeholder="roberto@correo.gt" required style="width: 100%;">
+          </div>
+          <div style="margin-bottom: 10px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Contraseña</label>
+            <input type="password" id="regPassInput" placeholder="******" required style="width: 100%;">
+          </div>
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">Rol de
+              Usuario</label>
+            <select id="regRoleSelect" style="width: 100%;">
+              <option value="CLIENTE">CLIENTE (Realiza pedidos y rastrea)</option>
+              <option value="COMERCIO">COMERCIO (Panel de cocina y menú)</option>
+              <option value="REPARTIDOR">REPARTIDOR (Entregas y GPS)</option>
+              <option value="ADMINISTRADOR">ADMINISTRADOR (Métricas y gestión)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-promo" style="width: 100%; justify-content: center; padding: 12px;">
+            Registrar e Iniciar ➔
+          </button>
+        </form>
+
+        <!-- Opción para Continuar como Invitado -->
+        <div style="margin-top: 14px; text-align: center;">
+          <button type="button" id="btnContinueAsGuest" style="width: 100%; padding: 11px; background: #F8FAFC; border: 1.5px solid var(--border-subtle); border-radius: var(--radius-sm); font-weight: 700; font-size: 0.88rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease;">
+            <span>🛵</span>
+            <span>Continuar como Invitado (Sin registrarse) ➔</span>
+          </button>
+          <small style="display: block; margin-top: 5px; font-size: 0.74rem; color: var(--text-muted);">
+            💡 Como invitado puedes pedir y rastrear en vivo; tus datos se borrarán al cerrar la página.
+          </small>
+        </div>
+
+        <div id="authLogoutSection" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-subtle); text-align: center;">
+          <button type="button" id="btnLogoutActiveUser" style="width: 100%; padding: 10px; background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.84rem; color: #DC2626; cursor: pointer;">
+            🚪 Cerrar Sesión (Volver a Modo Invitado)
+          </button>
+        </div>
+
+        <div style="border-top: 1px dashed var(--border-subtle); padding-top: 16px; margin-top: 14px;">
+          <div
+            style="font-size: 0.82rem; font-weight: 800; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase;">
+            ⚡ Cuentas de Acceso Rápido:
+          </div>
+          <div id="demoAccountsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Detalle y Personalización de Producto -->
+  <div class="modal-backdrop" id="productModal">
+    <div class="modal-window">
+      <button class="btn-close-modal" id="btnCloseProductModal" aria-label="Cerrar modal de producto">✕</button>
+      <img src="" alt="Plato" class="modal-product-image" id="modalProductImg">
+
+      <div class="modal-body">
+        <h3 class="modal-title" id="modalProductTitle">Plato</h3>
+        <p class="modal-desc" id="modalProductDesc">Descripción del plato.</p>
+
+        <div class="modal-options-group" id="modalProductOptions"></div>
+
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px;">
+          Aclaraciones especiales para el restaurante
+        </label>
+        <textarea class="modal-notes-area" id="modalSpecialNotes"
+          placeholder="Ej: Sin cebolla, salsas camperas adicionales, etc."></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <div class="quantity-stepper">
+          <button class="btn-step" id="modalBtnMinus">-</button>
+          <span class="step-value" id="modalStepValue">1</span>
+          <button class="btn-step" id="modalBtnPlus">+</button>
+        </div>
+        <button class="btn-add-modal" id="modalBtnAdd">
+          <span id="modalBtnAddText">Agregar al pedido • Q0</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Modificar Parámetros y Foto de Platillo Existente -->
+  <div class="modal-backdrop" id="editDishModal">
+    <div class="modal-window" style="max-width: 540px;">
+      <button class="btn-close-modal" id="btnCloseEditDishModal" aria-label="Cerrar modal de edición">✕</button>
+      <div class="modal-body" style="padding: 24px;">
+        <h3 class="modal-title" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+          <span>✏️</span> Modificar Platillo
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 18px;">
+          Edita el nombre, precio, categoría, descripción y fotografía del platillo.
+        </p>
+
+        <form id="formEditDish" style="display: flex; flex-direction: column; gap: 14px;">
+          <input type="hidden" id="editDishId">
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Nombre del Platillo</label>
+            <input type="text" id="editDishName" required style="width: 100%;">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Categoría del Menú</label>
+              <input type="text" id="editDishCategory" required style="width: 100%;">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Precio en Quetzales (Q)</label>
+              <input type="number" id="editDishPrice" min="1" step="0.5" required style="width: 100%;">
+            </div>
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Descripción del Platillo</label>
+            <textarea id="editDishDesc" rows="3" required style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); padding: 8px 10px; font-family: inherit; font-size: 0.88rem;"></textarea>
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px;">Fotografía del Platillo</label>
+            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
+              <img id="editDishPreviewImg" src="" alt="Vista previa" style="width: 52px; height: 52px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border-subtle);">
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                <label for="editDishFileInput" class="btn-promo" style="padding: 6px 14px; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; width: fit-content;">
+                  📷 Subir nueva foto desde mi dispositivo
+                </label>
+                <input type="file" id="editDishFileInput" accept="image/*" style="display: none;">
+                <span id="editDishFileLabel" style="font-size: 0.75rem; color: var(--text-muted);">Foto actual del platillo</span>
+              </div>
+            </div>
+            <select id="editDishImageSelect" style="width: 100%;">
+              <option value="">(Conservar foto actual / personalizada)</option>
+              <option value="https://images.unsplash.com/photo-1562967914-608f82629710?w=600">🍗 Pollo / Alitas Crujientes</option>
+              <option value="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600">🍔 Hamburguesa Artesanal</option>
+              <option value="https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600">🍕 Pizza con Queso</option>
+              <option value="https://images.unsplash.com/photo-1619740455993-9e612b1af08a?w=600">🌭 Shuco Típico</option>
+              <option value="https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600">🍦 Postre / Helado</option>
+              <option value="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600">🥗 Ensalada Fresca</option>
+              <option value="https://images.unsplash.com/photo-1544025162-d76694265947?w=600">🥩 Carnes y Asados</option>
+            </select>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+            <button type="button" class="btn-cancel" id="btnCancelEditDish" style="padding: 10px 18px; border: 1px solid var(--border-subtle); background: white; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-promo" style="padding: 10px 24px;">
+              💾 Guardar Cambios
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer Lateral del Carrito (Mobile / Backup) -->
+  <div class="cart-drawer-backdrop" id="cartDrawerBackdrop">
+    <div class="cart-drawer">
+      <div class="cart-header">
+        <h3 class="cart-title">Tu Pedido Chapín</h3>
+        <button class="btn-close-modal" id="btnCloseCartDrawer" style="position: static;"
+          aria-label="Cerrar canasta de pedidos">✕</button>
+      </div>
+
+      <div class="cart-items-list" id="cartItemsList"></div>
+
+      <div class="cart-footer">
+        <div class="price-row">
+          <span>Subtotal</span>
+          <span id="cartSubtotal">Q0</span>
+        </div>
+        <div class="price-row">
+          <span>Costo de envío</span>
+          <span id="cartDeliveryFee">Gratis</span>
+        </div>
+        <div class="price-row">
+          <span>Tarifa de servicio Qgo</span>
+          <span>Q5</span>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Propina al repartidor:</span>
+          <div class="tip-selector">
+            <button class="tip-btn" data-tip="0">0%</button>
+            <button class="tip-btn" data-tip="5">5%</button>
+            <button class="tip-btn active" data-tip="10">10%</button>
+            <button class="tip-btn" data-tip="15">15%</button>
+          </div>
+        </div>
+
+        <div class="price-row total">
+          <span>Total a Pagar</span>
+          <span id="cartTotal" style="color: var(--primary);">Q0</span>
+        </div>
+
+        <button class="btn-checkout-now" id="btnCheckoutNow">
+          Continuar al Pago ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Checkout / Pasarela de Pago -->
+  <div class="modal-backdrop" id="checkoutModal">
+    <div class="modal-window">
+      <button class="btn-close-modal" id="btnCloseCheckoutModal" aria-label="Cerrar pasarela de pago">✕</button>
+      <div class="modal-body">
+        <h3 class="modal-title">Pasarela de Pago Qgo</h3>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 18px;">
+          Ordenando en <b id="checkoutRestName">Restaurante</b> (Guatemala)
+        </p>
+
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="font-size: 0.85rem; font-weight: 700;">Dirección de Entrega</label>
+          </div>
+          <div style="margin-bottom: 8px;">
+            <div id="checkoutSavedAddrsRow" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+          </div>
+          <input type="text" id="checkoutAddressInput"
+            value="10ma Avenida 14-25, Zona 14, Edificio Las Américas, Apto 402, Guatemala" style="width: 100%;">
+          <small style="color: var(--text-muted); font-size: 0.76rem; display: block; margin-top: 3px;">
+            💡 Si cambias la zona o dirección, recalcularemos automáticamente la sucursal más cercana.
+          </small>
+        </div>
+
+        <!-- Banner de Sucursal Asignada en Checkout -->
+        <div class="checkout-branch-banner" id="checkoutBranchBanner"
+          style="background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.5rem;">🏬</span>
+            <div>
+              <div
+                style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 0.5px;">
+                Sucursal que despacha tu pedido:</div>
+              <div id="checkoutBranchName" style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);">Pollo
+                Campero Las Américas (Zona 14)</div>
+              <div id="checkoutBranchDetails" style="font-size: 0.78rem; color: var(--text-muted);">A 0.3 km de tu casa
+                • Entrega estimada: 15-20 min</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+            <span
+              style="background: #DCFCE7; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; white-space: nowrap;">
+              ⚡ Asignada automáticamente
+            </span>
+            <button type="button" id="btnChangeBranchFromCheckout"
+              style="background: none; border: none; color: var(--primary); font-size: 0.76rem; font-weight: 700; cursor: pointer; text-decoration: underline; white-space: nowrap;">
+              Ver otras sucursales
+            </button>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">Selecciona el Método
+            de Pago</label>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label
+              style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); cursor: pointer;">
+              <input type="radio" name="paymentMethod" value="Tarjeta BAC Credomatic" checked>
+              <span>💳 Tarjeta de Crédito / Débito (BAC / BI / Promerica)</span>
+            </label>
+            <label
+              style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); cursor: pointer;">
+              <input type="radio" name="paymentMethod" value="Efectivo en Quetzales">
+              <span>💵 Efectivo contra entrega (Billetes en Quetzales)</span>
+            </label>
+            <label
+              style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); cursor: pointer;">
+              <input type="radio" name="paymentMethod" value="Transferencia BI en Línea / Banrural">
+              <span>⚡ Transferencia Chapina (BI en Línea / Banrural)</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="checkoutCardFields"
+          style="background: var(--bg-subtle); padding: 14px; border-radius: var(--radius-md); margin-bottom: 16px;">
+          <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 8px; color: var(--text-muted);">Datos de la
+            Tarjeta (Simulados)</div>
+          <div style="margin-bottom: 8px;">
+            <input type="text" id="checkoutCardNumber" value="4532 8901 2345 8920" placeholder="Número de Tarjeta"
+              maxlength="19" style="width: 100%;">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <input type="text" id="checkoutCardExp" value="08/28" placeholder="MM/AA" maxlength="5">
+            <input type="text" id="checkoutCardCvv" value="782" placeholder="CVV" maxlength="4">
+          </div>
+        </div>
+
+        <div id="checkoutCashFields"
+          style="display: none; background: var(--bg-subtle); padding: 14px; border-radius: var(--radius-md); margin-bottom: 16px;">
+          <label style="font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 6px;">¿Con cuánto vas a
+            pagar para el vuelto?</label>
+          <select id="checkoutCashSelect" style="width: 100%;">
+            <option value="100">Billete de Q100</option>
+            <option value="200">Billete de Q200</option>
+            <option value="cabal">Pago cabal (Sin vuelto)</option>
+          </select>
+          <div id="checkoutCashChangeNote"
+            style="margin-top: 8px; font-size: 0.82rem; font-weight: 700; color: var(--accent-green);"></div>
+        </div>
+
+        <div id="checkoutTransferFields"
+          style="display: none; background: #EFF6FF; border: 1.5px solid #BFDBFE; padding: 14px; border-radius: var(--radius-md); margin-bottom: 16px; font-size: 0.84rem; color: #1E40AF; line-height: 1.5;">
+          <div style="font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>⚡ Cuentas para Transferencia Chapina:</span>
+          </div>
+          <div>• <b>Banco Industrial (BI)</b>: Monetaria Q 045-89123-1 (Qgo Guatemala S.A.)</div>
+          <div>• <b>Banrural</b>: Monetaria Q 312-00912-8 (Qgo Guatemala S.A.)</div>
+          <div style="font-size: 0.78rem; margin-top: 6px; color: #2563EB;">💡 Tu orden se preparará de inmediato.
+            Podrás enviar tu comprobante al motorista.</div>
+        </div>
+
+        <!-- Cupón de Descuento -->
+        <div class="checkout-coupon-box"
+          style="background: #F9FAFB; border: 1.5px dashed var(--border-subtle); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+          <label
+            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">🏷️
+            ¿Tienes un cupón de descuento?</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="checkoutCouponInput" placeholder="Ej: QGOCHAPIN, ENVIOGRATIS"
+              style="flex: 1; text-transform: uppercase; padding: 8px 12px; font-weight: 700; font-size: 0.85rem; border: 1px solid var(--border-subtle); border-radius: 6px;">
+            <button type="button" id="btnApplyCoupon"
+              style="background: var(--text-main); color: white; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; cursor: pointer; border: none;">Aplicar</button>
+          </div>
+          <div id="couponStatusMessage" style="font-size: 0.78rem; margin-top: 6px; display: none;"></div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+            <span class="coupon-tag-hint" data-code="QGOCHAPIN"
+              style="cursor: pointer; background: #FEF3C7; color: #92400E; font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; font-weight: 700;">🎁
+              QGOCHAPIN (-Q15)</span>
+            <span class="coupon-tag-hint" data-code="ENVIOGRATIS"
+              style="cursor: pointer; background: #DCFCE7; color: #166534; font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; font-weight: 700;">🛵
+              ENVIOGRATIS</span>
+            <span class="coupon-tag-hint" data-code="GUATE502"
+              style="cursor: pointer; background: #E0F2FE; color: #075985; font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; font-weight: 700;">🇬🇹
+              GUATE502 (-Q10)</span>
+          </div>
+        </div>
+
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid var(--border-subtle);">
+          <div>
+            <div id="checkoutDiscountRow"
+              style="display: none; font-size: 0.82rem; color: var(--accent-green); font-weight: 700; margin-bottom: 2px;">
+              Descuento aplicado: <span id="checkoutDiscountAmount">-Q0</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Total a pagar</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: var(--primary);" id="checkoutSummaryTotal">Q0</div>
+          </div>
+          <button class="btn-promo" id="btnConfirmOrder" style="padding: 12px 28px;">
+            Pagar y Enviar Pedido ➔
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL HISTORIAL DE PEDIDOS -->
+  <div class="modal-backdrop" id="ordersHistoryModal">
+    <div class="modal-window" style="max-width: 680px;">
+      <button class="btn-close-modal" id="btnCloseOrdersHistoryModal" aria-label="Cerrar historial">✕</button>
+      <div class="modal-body" style="padding: 24px;">
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
+          <div>
+            <h3 class="modal-title" style="margin: 0;">📋 Mis Pedidos Anteriores</h3>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Historial de compras, tickets de
+              caja y repetición de órdenes</div>
+          </div>
+          <span
+            style="font-size: 0.82rem; font-weight: 700; background: var(--bg-subtle); padding: 4px 10px; border-radius: 20px;"
+            id="ordersHistoryCount">0 pedidos</span>
+        </div>
+        <div id="ordersHistoryListContainer"
+          style="display: flex; flex-direction: column; gap: 14px; max-height: 60vh; overflow-y: auto; padding-right: 4px;">
+          <!-- Lista reactiva de pedidos -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FACTURA / COMPROBANTE DE ENTREGA -->
+  <div class="modal-backdrop" id="receiptModal">
+    <div class="modal-window" style="max-width: 480px; padding: 0;">
+      <button class="btn-close-modal" id="btnCloseReceiptModal" aria-label="Cerrar ticket">✕</button>
+      <div class="modal-body" style="padding: 24px; background: #FFFDF9;">
+        <div id="receiptContent">
+          <!-- Contenido renderizado del recibo -->
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 18px;">
+          <button type="button" class="btn-promo" id="btnPrintReceipt"
+            style="flex: 1; padding: 10px; font-weight: 700; background: var(--text-main); justify-content: center;">
+            🖨️ Imprimir / Guardar Ticket
+          </button>
+          <button type="button" class="btn-back" id="btnCloseReceiptBtn" style="margin: 0; padding: 10px 16px;">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIGURACIÓN GOOGLE MAPS API (Oculto de la vista según preferencia del usuario) -->
+  <div class="modal" id="googleMapsModal" style="display: none !important;">
+    <div class="modal-dialog" style="max-width: 580px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg"
+            alt="Google Maps" style="width: 26px; height: 26px;">
+          <h3 class="modal-title">Integración con Google Maps</h3>
+        </div>
+        <button class="btn-close-modal" id="btnCloseGoogleMapsModal"
+          aria-label="Cerrar modal de configuración">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 20px 24px;">
+        <div
+          style="background: #E8F0FE; border-left: 4px solid #1A73E8; padding: 14px 16px; border-radius: 6px; margin-bottom: 20px; font-size: 0.88rem; color: #174EA6; line-height: 1.5;">
+          <strong>💡 ¿Cómo funciona Google Maps Gratis?</strong><br>
+          Google Cloud ofrece a cada cuenta <b>$200 USD mensuales de crédito gratuito</b> de por vida (~28,500 cargas de
+          mapa al mes gratis). Para proyectos universitarios y demostraciones, el costo real es <b>$0.00</b>. Además,
+          puedes usar el <b>Modo Directo</b> sin necesidad de tarjetas de crédito.
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="font-weight: 700; font-size: 0.9rem; display: block; margin-bottom: 10px;">Elige el método de
+            integración:</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <label
+              style="border: 2px solid var(--primary); border-radius: 8px; padding: 12px; cursor: pointer; display: flex; align-items: flex-start; gap: 10px; background: #FFF5F7;"
+              id="lblModeDirect">
+              <input type="radio" name="gmapModeRadio" value="direct" id="radioMapDirect" checked
+                style="margin-top: 3px;">
+              <div>
+                <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">Google Maps Directo</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">100% gratis, sin tarjeta y
+                  sin clave. Calles, satélite y terreno oficial de Google.</div>
+              </div>
+            </label>
+
+            <label
+              style="border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; cursor: pointer; display: flex; align-items: flex-start; gap: 10px; background: white;"
+              id="lblModeSdk">
+              <input type="radio" name="gmapModeRadio" value="sdk" id="radioMapSdk" style="margin-top: 3px;">
+              <div>
+                <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">Google Maps JavaScript API
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">SDK nativo con tu API Key de
+                  Google Cloud y los $200 de crédito gratis.</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div id="googleApiKeyContainer"
+          style="display: none; background: var(--bg-subtle); padding: 16px; border-radius: 8px; margin-bottom: 18px; border: 1px solid var(--border-subtle);">
+          <label style="font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">Pega tu Google Cloud
+            API Key:</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="inputGoogleApiKey" placeholder="AIzaSy..."
+              style="flex: 1; font-family: monospace; font-size: 0.85rem; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 6px;">
+            <button class="btn-promo" id="btnSaveGoogleApiKey" style="padding: 10px 18px; font-size: 0.85rem;">Validar y
+              Usar</button>
+          </div>
+
+          <div
+            style="margin-top: 14px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; background: white; padding: 12px; border-radius: 6px; border: 1px solid var(--border-subtle);">
+            <strong style="color: var(--text-main);">Guía rápida paso a paso para obtener tu clave gratis:</strong>
+            <ol style="margin-top: 6px; padding-left: 20px;">
+              <li>Ingresa a <a href="https://console.cloud.google.com/" target="_blank"
+                  style="color: #1A73E8; font-weight: 600; text-decoration: underline;">Google Cloud Console</a>.</li>
+              <li>Crea un nuevo proyecto (ejemplo: <code>Qgo Delivery</code>).</li>
+              <li>En el menú lateral ve a <b>APIs y Servicios &gt; Biblioteca</b>.</li>
+              <li>Busca <b>Maps JavaScript API</b> y presiona el botón <b>Habilitar</b>.</li>
+              <li>Ve a <b>Credenciales &gt; Crear credenciales &gt; Clave de API</b>.</li>
+              <li>Copia tu clave (empieza con <code>AIzaSy...</code>) y pégala arriba.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+          <button class="btn-cancel" id="btnCancelMapModal"
+            style="padding: 10px 20px; border: 1px solid var(--border-subtle); background: white; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;">Cerrar</button>
+          <button class="btn-promo" id="btnApplyMapSettings" style="padding: 10px 24px;">Aplicar Cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Selector de Sucursal del Restaurante -->
+  <div class="modal-backdrop" id="branchSelectionModal">
+    <div class="modal-window" style="max-width: 620px;">
+      <button class="btn-close-modal" id="btnCloseBranchModal" aria-label="Cerrar modal de sucursales">✕</button>
+      <div class="modal-body" style="padding: 24px;">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>🏬</span> Sucursales Disponibles
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;" id="branchModalSubtitle">
+          Elige la sucursal de donde deseas que preparen tu comida. Están ordenadas de la más cercana a la más lejana a
+          tu ubicación:
+        </p>
+
+        <div
+          style="margin-bottom: 14px; background: #F1F5F9; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 0.82rem; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border-subtle);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span>🏠 <b>Tu ubicación:</b></span>
+            <span id="branchModalUserLocation" style="color: var(--text-main); font-weight: 600;">Zona 14, Ciudad de
+              Guatemala</span>
+          </div>
+          <span style="font-size: 0.75rem; color: var(--primary); font-weight: 700;">Distancia calculada</span>
+        </div>
+
+        <div class="branches-list-scroll" id="branchesListContainer"
+          style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;">
+          <!-- Items de sucursales generados dinámicamente -->
+        </div>
+
+        <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+          <button type="button" class="btn-cancel" id="btnCancelBranchModal"
+            style="padding: 10px 22px; border: 1px solid var(--border-subtle); background: white; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer;">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/data.js?v=14"></script>
+  <script src="js/api.js?v=14"></script>
+  <script src="js/modules/state.js?v=14"></script>
+  <script src="js/modules/auth.js?v=14"></script>
+  <script src="js/modules/orders.js?v=14"></script>
+  <script src="js/modules/cart.js?v=14"></script>
+  <script src="js/modules/map.js?v=14"></script>
+  <script src="js/modules/dashboards.js?v=14"></script>
+  <script src="js/app.js?v=14"></script>
+</body>
+
+</html>
